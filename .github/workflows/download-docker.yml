@@ -1,0 +1,54 @@
+name: Download and Package Docker Image
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_name:
+        description: 'Docker 镜像名称 (例如: jgraph/drawio)'
+        required: true
+        default: 'jgraph/drawio'
+      image_tag:
+        description: 'Docker 镜像版本号 (例如: 30.0.4)'
+        required: true
+        default: '30.0.4'
+      architecture:
+        description: '选择 CPU 架构'
+        required: true
+        default: 'linux/amd64'
+        type: choice
+        options:
+          - 'linux/amd64'
+          - 'linux/arm64'
+          - 'linux/arm/v7'
+
+jobs:
+  build-and-package:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v3
+
+    - name: Pull Docker Image
+      run: |
+        docker pull --platform ${{ github.event.inputs.architecture }} ${{ github.event.inputs.image_name }}:${{{ github.event.inputs.image_tag }}
+
+    - name: Save and Compress Docker Image
+      run: |
+        SAFE_NAME=$(echo "${{ github.event.inputs.image_name }}" | sed 's/\//_/g')
+        SAFE_ARCH=$(echo "${{ github.event.inputs.architecture }}" | sed 's/\//_/g')
+        FILENAME="${SAFE_NAME}_${{{ github.event.inputs.image_tag }}Rounded}_${SAFE_ARCH}.tar.gz"
+        
+        echo "Packaging image to $FILENAME..."
+        docker save ${{ github.event.inputs.image_name }}:${{{ github.event.inputs.image_tag }} | gzip > $FILENAME
+        echo "FILENAME=$FILENAME" >> $GITHUB_ENV
+
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ env.FILENAME }}
+        path: ${{ env.FILENAME }}
+        retention-days: 3
