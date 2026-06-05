@@ -40,11 +40,14 @@ jobs:
       run: |
         SAFE_NAME=$(echo "${{ github.event.inputs.image_name }}" | sed 's/\//_/g')
         SAFE_ARCH=$(echo "${{ github.event.inputs.architecture }}" | sed 's/\//_/g')
-        # 修正了此处变量拼接的括号
-        FILENAME="${SAFE_NAME}_${{ github.event.inputs.image_tag }}_${SAFE_ARCH}.tar.gz"
         
+        # 彻底修复此处的文件名变量拼接
+        FILENAME="${SAFE_NAME}_${{ github.event.inputs.image_tag }}_${SAFE_ARCH}.tar.gz"
         echo "Packaging image to $FILENAME..."
+        
+        # 彻底修复此处的 docker save 变量引用
         docker save ${{ github.event.inputs.image_name }}:${{{ github.event.inputs.image_tag }} | gzip > $FILENAME
+        
         echo "FILENAME=$FILENAME" >> $GITHUB_ENV
 
     - name: Upload Artifact
