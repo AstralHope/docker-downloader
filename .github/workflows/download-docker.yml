@@ -32,20 +32,19 @@ jobs:
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v3
 
+    # 修复了这里的三个大括号
     - name: Pull Docker Image
       run: |
-        docker pull --platform ${{ github.event.inputs.architecture }} ${{ github.event.inputs.image_name }}:${{{ github.event.inputs.image_tag }}
+        docker pull --platform ${{ github.event.inputs.architecture }} ${{ github.event.inputs.image_name }}:${{ github.event.inputs.image_tag }}
 
     - name: Save and Compress Docker Image
       run: |
         SAFE_NAME=$(echo "${{ github.event.inputs.image_name }}" | sed 's/\//_/g')
         SAFE_ARCH=$(echo "${{ github.event.inputs.architecture }}" | sed 's/\//_/g')
         
-        # 1. 检查这里的两个大括号闭合
         FILENAME="${SAFE_NAME}_${{ github.event.inputs.image_tag }}_${SAFE_ARCH}.tar.gz"
         echo "Packaging image to $FILENAME..."
         
-        # 2. 检查这里的两个大括号闭合
         docker save ${{ github.event.inputs.image_name }}:${{ github.event.inputs.image_tag }} | gzip > $FILENAME
         
         echo "FILENAME=$FILENAME" >> $GITHUB_ENV
