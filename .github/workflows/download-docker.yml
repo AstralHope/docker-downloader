@@ -41,12 +41,12 @@ jobs:
         SAFE_NAME=$(echo "${{ github.event.inputs.image_name }}" | sed 's/\//_/g')
         SAFE_ARCH=$(echo "${{ github.event.inputs.architecture }}" | sed 's/\//_/g')
         
-        # 彻底修复此处的文件名变量拼接
+        # 1. 检查这里的两个大括号闭合
         FILENAME="${SAFE_NAME}_${{ github.event.inputs.image_tag }}_${SAFE_ARCH}.tar.gz"
         echo "Packaging image to $FILENAME..."
         
-        # 彻底修复此处的 docker save 变量引用
-        docker save ${{ github.event.inputs.image_name }}:${{{ github.event.inputs.image_tag }} | gzip > $FILENAME
+        # 2. 检查这里的两个大括号闭合
+        docker save ${{ github.event.inputs.image_name }}:${{ github.event.inputs.image_tag }} | gzip > $FILENAME
         
         echo "FILENAME=$FILENAME" >> $GITHUB_ENV
 
